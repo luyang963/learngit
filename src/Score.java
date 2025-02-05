@@ -1,11 +1,9 @@
 public class Score {
     //initialize the attributes which is needed for calculation
-        // Attributes to hold values for calculation
-        private double pointTotal;       // Total points possible (
-        private double earnedPoints;     // Points earned by the student
-        private double assignmentPercentage; // Weight of the assignment
-        private double totalWeightedGrade; // Final weighted grade
-
+        private double pointTotal;
+        private double earnedPoints;
+        private double assignmentPercentage;
+        private double totalWeightedGrade;
         // Constructor to initialize the attributes
         public Score(double pointTotal, double earnedPoints, double assignmentPercentage) {
             this.pointTotal = pointTotal;
@@ -14,7 +12,7 @@ public class Score {
             this.totalWeightedGrade=0;
         }
 
-        //method to calculate the Weighted
+        //method to calculate the Weighted grades
         public double cal(){
             return (earnedPoints / pointTotal) * (assignmentPercentage/100) * 100;
         }
