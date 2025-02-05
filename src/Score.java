@@ -12,6 +12,7 @@ public class Score {
             this.totalWeightedGrade=0;
         }
 
+
         //method to calculate the Weighted grades
         public double cal(){
             return (earnedPoints / pointTotal) * (assignmentPercentage/100) * 100;

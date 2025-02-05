@@ -10,6 +10,7 @@ import java.util.Scanner;
         System.out.print("Enter Point Total: ");
         double pointTotal = scanner.nextDouble();
 
+
         System.out.print("Enter Assignment Percentage (e.g. 35%): ");
         double assignmentPercentage = scanner.nextDouble();
 
