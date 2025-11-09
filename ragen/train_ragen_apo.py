@@ -3,15 +3,35 @@ import torch.optim as optim
 import numpy as np
 import yaml
 import os
+import sys
 from collections import deque
 import time
 import warnings
 warnings.filterwarnings('ignore')
 
-from .qwen_agent import QwenRAGENAgent
-from .experience_buffer import ExperienceBuffer  
-from .webshop_env import WebShopEnv
-from .reward_calculator import RewardCalculator
+# ==================== 关键修改：修复模块路径 ====================
+# 获取当前文件所在目录（ragen/）
+current_dir = os.path.dirname(os.path.abspath(__file__))
+# 获取项目根目录（RAGEN_MODAL/）
+project_root = os.path.dirname(current_dir)
+
+print(f"当前目录: {current_dir}")
+print(f"项目根目录: {project_root}")
+
+# 添加项目根目录到Python路径（这样才能导入ragen模块）
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+    print(f"🔧 添加项目根路径: {project_root}")
+
+# 添加WebShop路径
+webshop_path = os.path.join(project_root, 'WebShop')
+if webshop_path not in sys.path:
+    sys.path.insert(0, webshop_path)
+    print(f"🔧 添加WebShop路径: {webshop_path}")
+from ragen.qwen_agent import QwenRAGENAgent
+from ragen.experience_buffer import ExperienceBuffer  
+from ragen.webshop_env import WebShopEnv
+from ragen.reward_calculator import RewardCalculator
 
 # 简化APO训练器（避免复杂依赖）
 class SimpleAPOTrainer:
