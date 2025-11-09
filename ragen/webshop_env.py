@@ -16,7 +16,7 @@ if webshop_path not in sys.path:
     print(f"🔧 添加WebShop路径: {webshop_path}")
 
 try:
-    from webshop import WebShopEnv as OfficialWebShopEnv
+    from WebShop import WebShopEnv as OfficialWebShopEnv
     WEBSHOP_AVAILABLE = True
     print("✅ 成功导入本地WebShop环境")
 except ImportError as e:
