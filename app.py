@@ -32,6 +32,7 @@ base_image = (
         "beautifulsoup4>=4.12.0",
         "matplotlib>=3.7.0",
         "seaborn>=0.12.0"
+        "gym==0.26.2"  
     )  
     .run_commands(
         "git config --global http.postBuffer 1048576000"
