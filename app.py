@@ -2,6 +2,13 @@ import modal
 import time
 import random
 import json
+# 导入 Modal 函数内部所需的标准库，以便执行路径操作
+import os
+import sys
+from pathlib import Path
+import subprocess
+import shutil
+import traceback
 
 app = modal.App("ragen-github-webshop")
 
@@ -410,6 +417,7 @@ class DetailedRAGENTrainer:
 
 def save_detailed_results(stats, evaluator):
     """保存详细结果"""
+    # 导入函数内部依赖
     import shutil
     from pathlib import Path
     
@@ -451,30 +459,17 @@ def save_detailed_results(stats, evaluator):
 )
 def train_from_github():
     """使用真实WebShop环境的训练流程"""
-    import os
-    import sys
-    from pathlib import Path
-    import subprocess
-    import shutil
+    # 导入函数内部依赖
+    # import os 
+    # import sys 
+    # from pathlib import Path 
+    # import subprocess 
+    # import shutil 
+    # import traceback # 这些已在文件顶部导入
+    
     print("🔍 查找WebShop中的环境类...")
 
-# 检查web_agent_site_env.py中的类
-try:
-    from webshop.web_agent_site.envs import web_agent_site_env # type: ignore
-    print("✅ 导入web_agent_site_env成功")
-    print("可用类:", [x for x in dir(web_agent_site_env) if 'Env' in x or 'env' in x.lower()])
-except Exception as e:
-    print(f"❌ 导入失败: {e}")
-
-# 检查web_agent_text_env.py中的类
-try:
-    from webshop.web_agent_site.envs import web_agent_text_env
-    print("✅ 导入web_agent_text_env成功") 
-    print("可用类:", [x for x in dir(web_agent_text_env) if 'Env' in x or 'env' in x.lower()])
-except Exception as e:
-    print(f"❌ 导入失败: {e}")
-    
-    # 克隆正确的GitHub仓库
+    # --- 克隆逻辑 (保持不变) ---
     repo_url = "https://github.com/luyang963/learngit.git"
     work_dir = Path("/root/learngit") 
     
@@ -489,22 +484,42 @@ except Exception as e:
         print("✅ GitHub repository cloned successfully")
     except Exception as e:
         print(f"❌ Git clone failed: {e}")
-        return {"status": "error", "message": "Git clone failed"}
-    
+        # 如果克隆失败，返回错误
+        return {"status": "error", "message": f"Git clone failed: {e}"}
+        
     # 切换到工作目录
     os.chdir(work_dir)
+    # ---------------------------
+
+    # 🚨 关键修正 1：修正 WebShop 目录的大小写
+    # 您的目录是小写 'webshop'
+    webshop_path = work_dir / "webshop" # 修正为小写 'webshop'
     
-    # 添加WebShop到Python路径（WebShop在根目录）
-    webshop_path = work_dir / "WebShop"
     if str(webshop_path) not in sys.path:
         sys.path.insert(0, str(webshop_path))
         print(f"🔧 Added WebShop path: {webshop_path}")
     
-    # 添加项目根目录到Python路径
+    # 🚨 关键修正 2：确保项目根目录（包含 ragen 模块）在路径中
     if str(work_dir) not in sys.path:
         sys.path.insert(0, str(work_dir))
         print(f"🔧 Added project root: {work_dir}")
-    
+        
+    # 检查web_agent_site_env.py中的类 (现在应该能够找到)
+    try:
+        from webshop.web_agent_site.envs import web_agent_site_env 
+        print("✅ 导入web_agent_site_env成功")
+        print("可用类:", [x for x in dir(web_agent_site_env) if 'Env' in x or 'env' in x.lower()])
+    except Exception as e:
+        print(f"❌ 导入 web_agent_site_env 失败: {e}")
+
+    # 检查web_agent_text_env.py中的类 (现在应该能够找到)
+    try:
+        from webshop.web_agent_site.envs import web_agent_text_env
+        print("✅ 导入web_agent_text_env成功") 
+        print("可用类:", [x for x in dir(web_agent_text_env) if 'Env' in x or 'env' in x.lower()])
+    except Exception as e:
+        print(f"❌ 导入 web_agent_text_env 失败: {e}")
+        
     # 使用真实WebShop环境训练
     try:
         print("🎯 Using REAL WebShop environment...")
@@ -525,7 +540,6 @@ except Exception as e:
         
     except Exception as e:
         print(f"❌ Real WebShop training failed: {e}")
-        import traceback
         traceback.print_exc()
         return {"status": "error", "message": str(e)}
 

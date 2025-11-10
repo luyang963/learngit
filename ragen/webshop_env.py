@@ -4,33 +4,29 @@ import time
 import random
 import os
 import sys
-import webshop
 
 # ==================== 关键修改：使用相对路径 ====================
 # 计算WebShop相对路径
 current_dir = os.path.dirname(__file__)  # ragen/ 目录
 project_root = os.path.dirname(current_dir)  # RAGEN_MODAL/ 目录
-webshop_path = os.path.join(project_root, 'WebShop')
+webshop_path = os.path.join(project_root, 'webshop')  # ✅ 改为小写
 
 if webshop_path not in sys.path:
     sys.path.insert(0, webshop_path)
     print(f"🔧 添加WebShop路径: {webshop_path}")
 
+WEBSHOP_AVAILABLE = False
+OfficialWebShopEnv = None
+
+# 统一导入路径
 try:
-    # 尝试导入实际的类名（可能是WebAgentSiteEnv或其他）
     from webshop.web_agent_site.envs.web_agent_site_env import WebAgentSiteEnv as OfficialWebShopEnv
     WEBSHOP_AVAILABLE = True
-    print("✅ 成功导入WebAgentSiteEnv")
-except ImportError as e1:
-    print(f"❌ WebAgentSiteEnv导入失败: {e1}")
-    try:
-        from webshop.web_agent_site.envs.web_agent_text_env import WebAgentTextEnv as OfficialWebShopEnv
-        WEBSHOP_AVAILABLE = True
-        print("✅ 成功导入WebAgentTextEnv")
-    except ImportError as e2:
-        print(f"❌ WebAgentTextEnv导入失败: {e2}")
-        WEBSHOP_AVAILABLE = False
-        
+    print("✅ 成功导入本地WebShop环境")
+except ImportError as e:
+    print(f"❌ WebShop环境导入失败: {e}")
+    print("🔧 使用模拟模式")
+
 class WebShopEnv:
     def __init__(self, server_url="http://localhost:3000", max_steps=15):
         self.server_url = server_url
