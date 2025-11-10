@@ -489,8 +489,7 @@ except Exception as e:
         print("✅ GitHub repository cloned successfully")
     except Exception as e:
         print(f"❌ Git clone failed: {e}")
-        return {"status": "error", "message": "Git clone failed"}
-    
+        
     # 切换到工作目录
     os.chdir(work_dir)
     
@@ -516,7 +515,7 @@ except Exception as e:
         config_path = "configs/webshop_config.yaml"
         trainer = RAGENWebShopTrainer(config_path)
         trainer.train()
-        
+        # 修正缩进
         return {
             "status": "completed", 
             "message": "Real WebShop training completed successfully",
@@ -527,6 +526,7 @@ except Exception as e:
         print(f"❌ Real WebShop training failed: {e}")
         import traceback
         traceback.print_exc()
+        # 修正缩进
         return {"status": "error", "message": str(e)}
 
 # 添加缺失的装饰器
