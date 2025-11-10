@@ -1,5 +1,4 @@
-import gymnasium as gym
-from gymnasium import spaces
+import gym
 import random
 import requests
 import string
@@ -7,7 +6,7 @@ import time
 
 from bs4 import BeautifulSoup
 from bs4.element import Comment
-from gymnasium import spaces
+from gym import spaces
 from os.path import join, dirname, abspath
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
