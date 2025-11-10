@@ -24,8 +24,9 @@ from ragen.qwen_agent import QwenRAGENAgent
 from ragen.experience_buffer import ExperienceBuffer
 from ragen.reward_calculator import RewardCalculator
 
-# ✅ 正确导入 WebShop 环境
+# ✅ 正确导入 WebShop 环境，兼容 Gymnasium
 try:
+    import gymnasium as gym  # 替换 gym 为 gymnasium
     from webshop.web_agent_site.envs.web_agent_site_env import WebAgentSiteEnv as WebShopEnv
     WEBSHOP_AVAILABLE = True
 except ImportError as e:
@@ -73,6 +74,7 @@ class SimpleAPOTrainer:
         
         return total_loss, pg_loss.item(), kl_penalty.item()
 
+
 class RAGENWebShopTrainer:
     def __init__(self, config_path="configs/webshop_config.yaml"):
         # 加载配置
@@ -116,7 +118,7 @@ class RAGENWebShopTrainer:
         self.format_success_rates = deque(maxlen=20)  # 格式成功率
         self.best_success_rate = 0.0
         self.total_steps = 0
-        
+    
     def collect_experience(self, num_episodes=2):
         """收集经验数据"""
         print(f"\n📥 收集 {num_episodes} 个回合的经验...")
@@ -141,7 +143,8 @@ class RAGENWebShopTrainer:
                     print(f"动作: {action_content}")
                     
                     # 执行动作
-                    next_obs, env_reward, done, info = self.env.step(action_content, info['session_id'])
+                    next_obs, env_reward, terminated, truncated, info = self.env.step(action_content, info['session_id'])
+                    done = terminated or truncated
                     
                     # 计算详细奖励 - 修复参数错误
                     task_success = (env_reward > 0.5)
@@ -156,7 +159,6 @@ class RAGENWebShopTrainer:
                         )
                     except TypeError as e:
                         print(f"⚠️ 使用简化奖励计算: {e}")
-                        # 如果参数不匹配，使用简化版本
                         reward = self.reward_calculator.calculate_simple_reward(
                             think_content, 
                             action_content, 
@@ -180,7 +182,7 @@ class RAGENWebShopTrainer:
                 success = 1 if episode_reward > 0.8 else 0  # 提高成功阈值
                 self.success_rates.append(success)
                 
-                # 格式成功率（关键指标）- 使用改进的检查方法
+                # 格式成功率（关键指标）
                 format_success = 1 if self._check_format_success(think_content, action_content) else 0
                 self.format_success_rates.append(format_success)
                 
@@ -195,7 +197,6 @@ class RAGENWebShopTrainer:
     
     def _check_format_success(self, think_content, action_content):
         """改进的格式检查 - 更宽松但有效"""
-        # 检查思考内容是否有效（不是模板文字）
         valid_think = (think_content and 
                        len(think_content.strip()) > 5 and
                        "你的推理" not in think_content and
@@ -203,11 +204,10 @@ class RAGENWebShopTrainer:
                        "思考过程" not in think_content and
                        "思考:" not in think_content)
         
-        # 检查动作内容是否有效且具体
         valid_action = (action_content and 
                         any(x in action_content for x in ['search[', 'click[', 'buy[']) and
                         action_content != "search[product]" and
-                        len(action_content) > 8)  # 确保不是太短
+                        len(action_content) > 8)
         
         return valid_think and valid_action
     
@@ -223,13 +223,11 @@ class RAGENWebShopTrainer:
             return None
         
         try:
-            # 计算A*PO优势
             advantages, v_star_values = self.apo_trainer.compute_advantages(
                 batch['observations'], batch['rewards'], batch['dones'],
                 self.reference_agent, self.agent
             )
             
-            # 计算参考策略的对数概率
             with torch.no_grad():
                 ref_log_probs = []
                 for (obs, instruction) in batch['observations']:
@@ -237,15 +235,12 @@ class RAGENWebShopTrainer:
                     ref_log_probs.append(ref_log_prob)
                 ref_log_probs = torch.FloatTensor(ref_log_probs)
             
-            # 当前策略的对数概率
             current_log_probs = torch.FloatTensor(batch['log_probs'])
             
-            # 计算A*PO策略损失
             policy_loss, pg_loss, kl_penalty = self.apo_trainer.compute_policy_loss(
                 current_log_probs, advantages, ref_log_probs
             )
             
-            # 反向传播
             self.optimizer.zero_grad()
             policy_loss.backward()
             torch.nn.utils.clip_grad_norm_(self.agent.parameters(), self.config['training']['grad_clip'])
@@ -275,10 +270,8 @@ class RAGENWebShopTrainer:
         for epoch in range(self.config['training']['num_epochs']):
             print(f"\n🔄 Epoch {epoch + 1}/{self.config['training']['num_epochs']}")
             
-            # 阶段1: 收集经验
             self.collect_experience(num_episodes=2)
             
-            # 阶段2: 训练
             if len(self.buffer) >= self.config['training']['batch_size']:
                 loss_info = self.train_step()
                 
@@ -293,8 +286,7 @@ class RAGENWebShopTrainer:
                 else:
                     print(f"Epoch {epoch:3d} | 训练跳过 - 无有效批次")
             
-            # 阶段3: 评估和检查停止条件
-            if epoch % 5 == 0:  # 更频繁的评估
+            if epoch % 5 == 0:
                 current_success = np.mean(self.success_rates) if self.success_rates else 0
                 current_format = np.mean(self.format_success_rates) if self.format_success_rates else 0
                 training_time = (time.time() - start_time) / 60
@@ -310,7 +302,6 @@ class RAGENWebShopTrainer:
                 print(f"格式成功率: {current_format:6.3f}")
                 print(f"历史最佳: {self.best_success_rate:6.3f}")
                 
-                # 成功标准检查
                 if current_success >= 0.20:
                     print("🎉" * 20)
                     print("达到Part 2作业要求: 成功率 > 20%!")
@@ -321,7 +312,6 @@ class RAGENWebShopTrainer:
                     
                 print("-" * 40)
         
-        # 最终统计
         total_time = (time.time() - start_time) / 60
         final_success = np.mean(self.success_rates) if self.success_rates else 0
         final_format = np.mean(self.format_success_rates) if self.format_success_rates else 0
@@ -337,12 +327,11 @@ class RAGENWebShopTrainer:
         
         self.env.close()
 
+
 def main():
-    # 创建目录
     os.makedirs("configs", exist_ok=True)
     os.makedirs("ragen", exist_ok=True)
     
-    # 创建默认配置文件（如果不存在）
     config_path = "configs/webshop_config.yaml"
     if not os.path.exists(config_path):
         default_config = {
@@ -370,13 +359,13 @@ def main():
                 'num_vstar_samples': 100
             }
         }
-        
         with open(config_path, 'w') as f:
             yaml.dump(default_config, f)
         print(f"📁 创建默认配置文件: {config_path}")
     
     trainer = RAGENWebShopTrainer(config_path)
     trainer.train()
+
 
 if __name__ == "__main__":
     main()

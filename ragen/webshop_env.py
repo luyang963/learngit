@@ -6,7 +6,6 @@ import os
 import sys
 
 # ==================== 关键修改：使用相对路径 ====================
-# 计算WebShop相对路径
 current_dir = os.path.dirname(__file__)  # ragen/ 目录
 project_root = os.path.dirname(current_dir)  # RAGEN_MODAL/ 目录
 webshop_path = os.path.join(project_root, 'webshop')  # ✅ 改为小写
@@ -20,12 +19,14 @@ OfficialWebShopEnv = None
 
 # 统一导入路径
 try:
+    import gymnasium as gym  # 替换 gym 为 gymnasium
     from webshop.web_agent_site.envs.web_agent_site_env import WebAgentSiteEnv as OfficialWebShopEnv
     WEBSHOP_AVAILABLE = True
     print("✅ 成功导入本地WebShop环境")
 except ImportError as e:
     print(f"❌ WebShop环境导入失败: {e}")
     print("🔧 使用模拟模式")
+
 
 class WebShopEnv:
     def __init__(self, server_url="http://localhost:3000", max_steps=15):
@@ -39,11 +40,9 @@ class WebShopEnv:
         
         if self.use_real_webshop:
             print("🎯 使用真实WebShop环境")
-            # 初始化真实WebShop环境
             self._init_real_webshop()
         else:
             print("🔧 使用WebShop模拟模式")
-            # 初始化模拟数据
             self._init_simulation()
     
     def _init_real_webshop(self):
@@ -89,21 +88,17 @@ class WebShopEnv:
         
         if self.use_real_webshop:
             try:
-                # 使用真实WebShop环境
                 observation = self.real_env.reset()
                 self.session_id = f"real_webshop_{int(time.time())}"
                 print(f"🎯 真实WebShop任务开始: {instruction}")
                 return observation, {'session_id': self.session_id, 'instruction': instruction, 'real_environment': True}
-                
             except Exception as e:
                 print(f"❌ 真实WebShop reset失败: {e}")
                 print("🔄 切换到模拟模式")
                 self.use_real_webshop = False
         
-        # 模拟模式
         self.session_id = f"sim_{int(time.time())}"
         observation = f"欢迎！请{instruction}\n页面显示搜索框和商品分类。"
-        
         print(f"🎯 模拟环境任务开始: {instruction}")
         return observation, {'session_id': self.session_id, 'instruction': instruction, 'real_environment': False}
     
@@ -116,10 +111,8 @@ class WebShopEnv:
         
         if self.use_real_webshop:
             try:
-                # 使用真实WebShop环境
-                observation, reward, done, info = self.real_env.step(action)
+                observation, reward, terminated, truncated, info = self.real_env.step(action)
                 
-                # 确保返回格式一致
                 if info is None:
                     info = {}
                 info.update({
@@ -129,8 +122,7 @@ class WebShopEnv:
                     'real_environment': True
                 })
                 
-                return observation, reward, done, info
-                
+                return observation, reward, terminated, truncated, info
             except Exception as e:
                 print(f"❌ 真实WebShop step失败: {e}")
                 self.use_real_webshop = False
@@ -145,7 +137,11 @@ class WebShopEnv:
             'real_environment': False
         }
         
-        return observation, reward, done, info
+        # 模拟模式统一返回 terminated 和 truncated
+        terminated = done
+        truncated = self.current_step >= self.max_steps and not done
+        
+        return observation, reward, terminated, truncated, info
     
     def _simulate_step(self, action):
         """模拟环境步骤"""
@@ -155,14 +151,12 @@ class WebShopEnv:
             reward = 0.2
             done = False
             observation = f"搜索结果页面 - 显示相关商品列表"
-                
         elif action_type == "click":
             reward = 0.3
             done = False
             observation = f"商品详情页面 - 显示商品信息"
-                
         elif action_type == "buy":
-            success_prob = 0.6  # 基础成功率
+            success_prob = 0.6
             if random.random() < success_prob:
                 reward = 1.0
                 done = True
@@ -171,13 +165,11 @@ class WebShopEnv:
                 reward = 0.1
                 done = False
                 observation = "⚠️ 购买失败，请检查商品或重试"
-                
         else:
             reward = -0.1
             done = False
             observation = "❌ 无效动作格式"
         
-        # 步数限制
         if self.current_step >= self.max_steps and not done:
             done = True
             reward = 0.0
