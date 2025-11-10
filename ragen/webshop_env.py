@@ -4,6 +4,7 @@ import time
 import random
 import os
 import sys
+import gym
 
 # ==================== 关键修改：使用相对路径 ====================
 current_dir = os.path.dirname(__file__)  # ragen/ 目录

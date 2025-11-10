@@ -8,31 +8,32 @@ from pathlib import Path
 import subprocess
 import shutil
 import traceback
+import gym
 
 app = modal.App("ragen-github-webshop")
-
-# 基础镜像配置
 base_image = (
     modal.Image.debian_slim(python_version="3.10")
     .apt_install("git", "build-essential", "cmake")
     .pip_install(
-    "torch==1.12.1",
-    "transformers==4.25.1",
-    "accelerate==0.19.0",
-    "numpy==1.21.6",
-    "requests==2.28.2",
-    "PyYAML==6.0",
-    "urllib3==1.26.16",
-    "tqdm==4.65.0",
-    "flask==1.1.4",
-    "flask-cors==3.0.10",
-    "scikit-learn==1.1.3",
-    "pandas==1.5.3",
-    "beautifulsoup4==4.9.3",
-    "matplotlib==3.5.3",
-    "seaborn==0.11.2",
-    "gym==0.21.0",
-    "selenium==4.1.0"
+        "torch==1.12.1",
+        "transformers==4.25.1",
+        "accelerate==0.19.0",
+        "numpy==1.21.6",
+        "requests==2.28.2",
+        "PyYAML==6.0",
+        "urllib3==1.26.16",
+        "tqdm==4.65.0",
+        "flask==1.1.4",
+        "flask-cors==3.0.10",
+        "scikit-learn==1.1.3",
+        "pandas==1.5.3",
+        "beautifulsoup4==4.9.3",
+        "matplotlib==3.5.3",
+        "seaborn==0.11.2",
+        "gym==0.25.2",              # 更新 Gym 版本
+        "box2d-py==2.3.5",          # Gym 0.25.x 需要 Box2D 支持
+        "opencv-python-headless==4.7.0.72",  # 避免 opencv 与其他包冲突
+        "selenium==4.1.0"
     )
     .run_commands(
         "git config --global http.postBuffer 1048576000"

@@ -7,6 +7,7 @@ import sys
 from collections import deque
 import time
 import warnings
+import gym
 warnings.filterwarnings('ignore')
 
 # ==================== 修复模块路径 ====================
