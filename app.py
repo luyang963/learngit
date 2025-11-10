@@ -16,24 +16,23 @@ base_image = (
     modal.Image.debian_slim(python_version="3.10")
     .apt_install("git", "build-essential", "cmake")
     .pip_install(
-        "torch>=2.1.0",
-        "transformers>=4.37.0",
-        "accelerate>=0.24.1",
-        "numpy>=1.24.3",
-        "requests>=2.31.0",
-        "PyYAML>=6.0.1",
-        "urllib3>=2.0.0",
-        "tqdm>=4.66.1",
-        "flask>=2.3.0",
-        "gym>=0.28.1",     
-        "flask-cors>=4.0.0",
-        "scikit-learn>=1.3.0",
-        "pandas>=2.0.0",
-        "beautifulsoup4>=4.12.0",
-        "matplotlib>=3.7.0",
-        "seaborn>=0.12.0",
-        "gymnasium>=0.28.1",
-        "selenium>=4.12.0"
+    "torch==1.12.1",
+    "transformers==4.25.1",
+    "accelerate==0.19.0",
+    "numpy==1.21.6",
+    "requests==2.28.2",
+    "PyYAML==6.0",
+    "urllib3==1.26.16",
+    "tqdm==4.65.0",
+    "flask==1.1.4",
+    "flask-cors==3.0.10",
+    "scikit-learn==1.1.3",
+    "pandas==1.5.3",
+    "beautifulsoup4==4.9.3",
+    "matplotlib==3.5.3",
+    "seaborn==0.11.2",
+    "gym==0.21.0",
+    "selenium==4.1.0"
     )
     .run_commands(
         "git config --global http.postBuffer 1048576000"

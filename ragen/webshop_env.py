@@ -19,7 +19,7 @@ OfficialWebShopEnv = None
 
 # 统一导入路径
 try:
-    import gymnasium as gym  # 替换 gym 为 gymnasium
+    import gym  # 替换 gym 为 gymnasium
     from webshop.web_agent_site.envs.web_agent_site_env import WebAgentSiteEnv as OfficialWebShopEnv
     WEBSHOP_AVAILABLE = True
     print("✅ 成功导入本地WebShop环境")

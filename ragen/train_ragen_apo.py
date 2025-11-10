@@ -26,7 +26,7 @@ from ragen.reward_calculator import RewardCalculator
 
 # ✅ 正确导入 WebShop 环境，兼容 Gymnasium
 try:
-    import gymnasium as gym  # 替换 gym 为 gymnasium
+    import gym  # 替换 gym 为 gymnasium
     from webshop.web_agent_site.envs.web_agent_site_env import WebAgentSiteEnv as WebShopEnv
     WEBSHOP_AVAILABLE = True
 except ImportError as e:
