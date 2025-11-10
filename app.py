@@ -456,8 +456,23 @@ def train_from_github():
     from pathlib import Path
     import subprocess
     import shutil
-    
-    print("🚀 Starting REAL WebShop RAGEN training process...")
+    print("🔍 查找WebShop中的环境类...")
+
+# 检查web_agent_site_env.py中的类
+try:
+    from webshop.web_agent_site.envs import web_agent_site_env # type: ignore
+    print("✅ 导入web_agent_site_env成功")
+    print("可用类:", [x for x in dir(web_agent_site_env) if 'Env' in x or 'env' in x.lower()])
+except Exception as e:
+    print(f"❌ 导入失败: {e}")
+
+# 检查web_agent_text_env.py中的类
+try:
+    from webshop.web_agent_site.envs import web_agent_text_env
+    print("✅ 导入web_agent_text_env成功") 
+    print("可用类:", [x for x in dir(web_agent_text_env) if 'Env' in x or 'env' in x.lower()])
+except Exception as e:
+    print(f"❌ 导入失败: {e}")
     
     # 克隆正确的GitHub仓库
     repo_url = "https://github.com/luyang963/learngit.git"
