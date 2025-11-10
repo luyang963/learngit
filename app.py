@@ -25,6 +25,7 @@ base_image = (
         "urllib3>=2.0.0",
         "tqdm>=4.66.1",
         "flask>=2.3.0",
+        "gym>=0.28.1",     
         "flask-cors>=4.0.0",
         "scikit-learn>=1.3.0",
         "pandas>=2.0.0",
